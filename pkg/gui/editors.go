@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
@@ -24,7 +23,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	if err != nil {
 		fmt.Fprintln(gui.Views.Extras, err)
 	}
-	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
+	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
 	flysnowRegexp := regexp.MustCompile(`(GROWTH-[\d]+)|(APP-[\d]+)`)
 	params := flysnowRegexp.FindStringSubmatch(branch)
 
