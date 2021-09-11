@@ -1,10 +1,7 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -101,12 +98,24 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.AppStatus.Visible = false
 
 	// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
-	osCommand := oscommands.NewDummyOSCommand()
-	branch, err := osCommand.RunCommandWithOutput("git rev-parse --abbrev-ref HEAD")
-	if err != nil {
-		fmt.Println(branch)
-		return nil
-	}
+	// osCommand := oscommands.NewDummyOSCommand()
+	// branch, err := osCommand.RunCommandWithOutput("git rev-parse --abbrev-ref HEAD")
+	// if err != nil {
+	// 	fmt.Fprintln(gui.Views.Extras, err)
+	// }
+	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
+	// flysnowRegexp := regexp.MustCompile(`(GROWTH-[\d]+)|(APP-[\d]+)`)
+	// params := flysnowRegexp.FindStringSubmatch(branch)
+	// if len(params) != 0 {
+	// 	commitPrefix := params[1] + ": "
+	// 	gui.Views.CommitMessage.SetEditorContent("1111111111111")
+	// 	gui.Views.CommitMessage.SetOrigin(13, 0)
+	// 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(gui.Views.CommitMessage.Size()))
+	// 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(gui.Views.CommitMessage.WritePos()))
+	// 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(gui.Views.CommitMessage.Cursor()))
+	// 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(gui.Views.CommitMessage.Origin()))
+	// 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(commitPrefix))
+	// }
 
 	gui.Views.CommitMessage.Visible = false
 	gui.Views.CommitMessage.Title = gui.Tr.CommitMessage

@@ -1,9 +1,13 @@
 package gui
 
 import (
+	"fmt"
+	"regexp"
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
@@ -13,6 +17,16 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	if !ok {
 		newlineKey = gocui.KeyAltEnter
 	}
+
+	// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
+	osCommand := oscommands.NewDummyOSCommand()
+	branch, err := osCommand.RunCommandWithOutput("git rev-parse --abbrev-ref HEAD")
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
+	flysnowRegexp := regexp.MustCompile(`(GROWTH-[\d]+)|(APP-[\d]+)`)
+	params := flysnowRegexp.FindStringSubmatch(branch)
 
 	matched := true
 	switch {
@@ -36,6 +50,11 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.Overwrite = !v.Overwrite
 	case key == gocui.KeyCtrlU:
 		v.EditDeleteToStartOfLine()
+	case key == gocui.KeyTab:
+		if len(params) != 0 {
+			commitPrefix := params[1] + ": "
+			v.SetEditorContent(commitPrefix)
+		}
 	case key == gocui.KeyCtrlA:
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
