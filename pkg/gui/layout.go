@@ -1,7 +1,10 @@
 package gui
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -96,6 +99,14 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.AppStatus.FgColor = gocui.ColorCyan
 	gui.Views.AppStatus.Frame = false
 	gui.Views.AppStatus.Visible = false
+
+	// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
+	osCommand := oscommands.NewDummyOSCommand()
+	branch, err := osCommand.RunCommandWithOutput("git rev-parse --abbrev-ref HEAD")
+	if err != nil {
+		fmt.Println(branch)
+		return nil
+	}
 
 	gui.Views.CommitMessage.Visible = false
 	gui.Views.CommitMessage.Title = gui.Tr.CommitMessage
