@@ -24,7 +24,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		fmt.Fprintln(gui.Views.Extras, err)
 	}
 	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
-	flysnowRegexp := regexp.MustCompile(`(GROWTH-[\d]+)|(APP-[\d]+)`)
+	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE)-[\d]+)`)
 	params := flysnowRegexp.FindStringSubmatch(branch)
 
 	matched := true
