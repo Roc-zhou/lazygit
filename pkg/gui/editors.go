@@ -3,11 +3,14 @@ package gui
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
+
+var num int = 0
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
@@ -27,6 +30,14 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE)-[\d]+)`)
 	params := flysnowRegexp.FindStringSubmatch(branch)
 
+	// commit message log
+	gitLogCommand := fmt.Sprintf("git log -n 1 --skip %s --pretty=format:%s", strconv.Itoa(num), "%s")
+	log, err := osCommand.RunCommandWithOutput(gitLogCommand)
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	fmt.Fprintln(gui.Views.Extras, "\n"+gitLogCommand)
+
 	matched := true
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
@@ -34,9 +45,19 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
 		v.EditDelete(false)
 	case key == gocui.KeyArrowDown:
-		v.MoveCursor(0, 1, false)
+		if num >= 0 {
+			v.SetEditorContent(log)
+		}
+		num--
+
+		// v.MoveCursor(0, 1, false)
 	case key == gocui.KeyArrowUp:
-		v.MoveCursor(0, -1, false)
+		if num <= 100 {
+			v.SetEditorContent(log)
+		}
+		num++
+
+		// v.MoveCursor(0, -1, false)
 	case key == gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
