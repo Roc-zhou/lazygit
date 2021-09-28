@@ -1,0 +1,7 @@
+# my lazygit config
+gui:
+  theme:
+    selectedLineBgColor:
+      - reverse
+    selectedRangeBgColor:
+      - reverse
