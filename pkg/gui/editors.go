@@ -27,7 +27,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		fmt.Fprintln(gui.Views.Extras, err)
 	}
 	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
-	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE)-[\d]+)`)
+	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE|SAAS)-[\d]+)`)
 	params := flysnowRegexp.FindStringSubmatch(branch)
 
 	// commit message log
@@ -49,7 +49,6 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 			v.SetEditorContent(log)
 		}
 		num--
-
 		// v.MoveCursor(0, 1, false)
 	case key == gocui.KeyArrowUp:
 		if num <= 100 {
