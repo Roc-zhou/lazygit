@@ -12,6 +12,37 @@ import (
 
 var num int = 0
 
+// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
+func (gui *Gui) getBranch() string {
+	osCommand := oscommands.NewDummyOSCommand()
+	getBranch := "git rev-parse --abbrev-ref HEAD"
+	fmt.Fprintln(gui.Views.Extras, "\n"+getBranch)
+	branch, err := osCommand.RunCommandWithOutput(getBranch)
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
+	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE|SAAS)-[\d]+)`)
+	params := flysnowRegexp.FindStringSubmatch(branch)
+	if len(params) != 0 {
+		commitPrefix := params[1] + ": "
+		return commitPrefix
+	}
+	return ""
+}
+
+// commit message log
+func (gui *Gui) gitLog() string {
+	osCommand := oscommands.NewDummyOSCommand()
+	gitLogCommand := fmt.Sprintf("git log -n 1 --skip %s --pretty=format:%s", strconv.Itoa(num), "%s")
+	log, err := osCommand.RunCommandWithOutput(gitLogCommand)
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	fmt.Fprintln(gui.Views.Extras, "\n"+gitLogCommand)
+	return log
+}
+
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
@@ -19,24 +50,6 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	if !ok {
 		newlineKey = gocui.KeyAltEnter
 	}
-
-	// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
-	osCommand := oscommands.NewDummyOSCommand()
-	branch, err := osCommand.RunCommandWithOutput("git rev-parse --abbrev-ref HEAD")
-	if err != nil {
-		fmt.Fprintln(gui.Views.Extras, err)
-	}
-	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
-	flysnowRegexp := regexp.MustCompile(`((APP|GROWTH|FE|SAAS)-[\d]+)`)
-	params := flysnowRegexp.FindStringSubmatch(branch)
-
-	// commit message log
-	gitLogCommand := fmt.Sprintf("git log -n 1 --skip %s --pretty=format:%s", strconv.Itoa(num), "%s")
-	log, err := osCommand.RunCommandWithOutput(gitLogCommand)
-	if err != nil {
-		fmt.Fprintln(gui.Views.Extras, err)
-	}
-	fmt.Fprintln(gui.Views.Extras, "\n"+gitLogCommand)
 
 	matched := true
 	switch {
@@ -46,16 +59,15 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.EditDelete(false)
 	case key == gocui.KeyArrowDown:
 		if num >= 0 {
-			v.SetEditorContent(log)
+			v.SetEditorContent(gui.gitLog())
 		}
 		num--
 		// v.MoveCursor(0, 1, false)
 	case key == gocui.KeyArrowUp:
 		if num <= 100 {
-			v.SetEditorContent(log)
+			v.SetEditorContent(gui.gitLog())
 		}
 		num++
-
 		// v.MoveCursor(0, -1, false)
 	case key == gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
@@ -70,10 +82,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	case key == gocui.KeyCtrlU:
 		v.EditDeleteToStartOfLine()
 	case key == gocui.KeyTab:
-		if len(params) != 0 {
-			commitPrefix := params[1] + ": "
-			v.SetEditorContent(commitPrefix)
-		}
+		v.SetEditorContent(gui.getBranch())
 	case key == gocui.KeyCtrlA:
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
