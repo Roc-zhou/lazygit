@@ -22,7 +22,7 @@ func (gui *Gui) getBranch() string {
 		fmt.Fprintln(gui.Views.Extras, err)
 	}
 	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
-	flysnowRegexp := regexp.MustCompile(`(((APP|GROWTH|FE|SAAS)-[\d]+)|(hotfix))`)
+	flysnowRegexp := regexp.MustCompile(`([A-Z]+-\d+)|(hotfix)`)
 	params := flysnowRegexp.FindStringSubmatch(branch)
 	if len(params) != 0 {
 		var commitPrefix string
