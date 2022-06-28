@@ -1,16 +1,46 @@
 package gui
 
 import (
+	"fmt"
+	"regexp"
+	"strconv"
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
+
+var num int = 0
+
+// 填写 commit 信息的时候，根据业务分支自动增加 commit 前缀
+func (gui *Gui) getBranch() string {
+	osCommand := oscommands.NewDummyOSCommand()
+	getBranch := "git rev-parse --abbrev-ref HEAD"
+	fmt.Fprintln(gui.Views.Extras, "\n"+getBranch)
+	branch, err := osCommand.Cmd.New(getBranch).RunWithOutput()
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	// fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(branch))
+	flysnowRegexp := regexp.MustCompile(`([A-Z]+-\d+)|(hotfix)`)
+	params := flysnowRegexp.FindStringSubmatch(branch)
+	if len(params) != 0 {
+		var commitPrefix string
+		if params[1] == "hotfix" {
+			commitPrefix = "FE-0000: "
+		} else {
+			commitPrefix = params[1] + ": "
+		}
+		return commitPrefix
+	}
+	return ""
+}
 
 // commit message log
 func (gui *Gui) gitLog() string {
 	osCommand := oscommands.NewDummyOSCommand()
 	gitLogCommand := fmt.Sprintf("git log -n 1 --skip %s --pretty=format:%s", strconv.Itoa(num), "%s")
-	log, err := osCommand.RunCommandWithOutput(gitLogCommand)
+	log, err := osCommand.Cmd.New(gitLogCommand).RunWithOutput()
 	if err != nil {
 		fmt.Fprintln(gui.Views.Extras, err)
 	}
@@ -31,13 +61,15 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.DeleteChar()
 	case key == gocui.KeyArrowDown:
 		if num >= 0 {
-			v.SetEditorContent(gui.gitLog())
+			textArea.Clear()
+			textArea.TypeString(gui.gitLog())
 		}
 		num--
-		// textArea.MoveCursorDown()
+		//textArea.MoveCursorDown()
 	case key == gocui.KeyArrowUp:
 		if num <= 100 {
-			v.SetEditorContent(gui.gitLog())
+			textArea.Clear()
+			textArea.TypeString(gui.gitLog())
 		}
 		num++
 		// textArea.MoveCursorUp()
@@ -61,6 +93,9 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.GoToStartOfLine()
 	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		textArea.GoToEndOfLine()
+	case key == gocui.KeyTab:
+		textArea.Clear()
+		textArea.TypeString(gui.getBranch())
 
 		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
 	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
