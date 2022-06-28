@@ -6,6 +6,18 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+// commit message log
+func (gui *Gui) gitLog() string {
+	osCommand := oscommands.NewDummyOSCommand()
+	gitLogCommand := fmt.Sprintf("git log -n 1 --skip %s --pretty=format:%s", strconv.Itoa(num), "%s")
+	log, err := osCommand.RunCommandWithOutput(gitLogCommand)
+	if err != nil {
+		fmt.Fprintln(gui.Views.Extras, err)
+	}
+	fmt.Fprintln(gui.Views.Extras, "\n"+gitLogCommand)
+	return log
+}
+
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
 	newlineKey, ok := gui.getKey(gui.c.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
@@ -18,9 +30,17 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
 		textArea.DeleteChar()
 	case key == gocui.KeyArrowDown:
-		textArea.MoveCursorDown()
+		if num >= 0 {
+			v.SetEditorContent(gui.gitLog())
+		}
+		num--
+		// textArea.MoveCursorDown()
 	case key == gocui.KeyArrowUp:
-		textArea.MoveCursorUp()
+		if num <= 100 {
+			v.SetEditorContent(gui.gitLog())
+		}
+		num++
+		// textArea.MoveCursorUp()
 	case key == gocui.KeyArrowLeft:
 		textArea.MoveCursorLeft()
 	case key == gocui.KeyArrowRight:
