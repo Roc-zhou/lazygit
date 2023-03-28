@@ -10,8 +10,9 @@ import (
 )
 
 // this takes something like:
-// * (HEAD detached at 264fc6f5)
-//	remotes
+//   - (HEAD detached at 264fc6f5)
+//     remotes
+//
 // and returns '264fc6f5' as the second match
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
@@ -146,7 +147,7 @@ func (self *BranchCommands) Rename(oldName string, newName string) error {
 }
 
 func (self *BranchCommands) GetRawBranches() (string, error) {
-	return self.cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)%00%(refname:short)%00%(upstream:short)%00%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
+	return self.cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)%00%(refname:lstrip=2)%00%(upstream:short)%00%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
 }
 
 type MergeOpts struct {
